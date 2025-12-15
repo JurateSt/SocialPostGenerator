@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { generatePosts } from "../api";
+import { ERROR_MESSAGES } from "@/messages/errors";
 
 interface Product {
   name: string;
@@ -22,6 +23,7 @@ const PLATFORM_ICONS = {
 };
 
 export default function Home() {
+  const [error, setError] = useState<string | null>(null);
   const [product, setProduct] = useState<Product>({
     name: "",
     description: "",
@@ -31,13 +33,26 @@ export default function Home() {
   const [posts, setPosts] = useState<SocialMediaPost[]>([]);
 
   const handleGeneratePosts = async () => {
-    const result = await generatePosts(product);
-    setPosts(result.posts);
+    setError(null);
+    try {
+      const result = await generatePosts(product);
+      setPosts(result.posts);
+    } catch (err: any) {
+      const errorCode = err?.code || "UNKNOWN_ERROR";
+      setError(ERROR_MESSAGES[errorCode] || ERROR_MESSAGES.UNKNOWN_ERROR);
+    }
   };
 
   return (
     <main className="min-h-screen p-8 max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold mb-8">Social Media Post Generator</h1>
+
+      {/* TODO: in real life would use toast library, tried not overengineering this */}
+      {error && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
+          <p className="text-red-600">{error}</p>
+        </div>
+      )}
 
       <div className="space-y-4 mb-8">
         <div>
