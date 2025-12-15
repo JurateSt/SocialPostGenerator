@@ -1,5 +1,5 @@
-import { callOpenAI } from "./openai";
-import { Product, SocialMediaPost } from "./types";
+import { callOpenAI } from "../openai";
+import { Product, SocialMediaPost } from "../types";
 
 const POST_COUNT = 5;
 
