@@ -1,3 +1,7 @@
+interface ApiError {
+  code: string;
+}
+
 interface Product {
   name: string;
   description: string;
@@ -28,5 +32,11 @@ export async function generatePosts(
     }
   );
 
-  return response.json();
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw data.error as ApiError;
+  }
+
+  return data;
 }
