@@ -36,6 +36,7 @@ export default function Home() {
   });
   const [posts, setPosts] = useState<SocialMediaPost[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
   const handleGeneratePosts = async () => {
     if (isLoading) return;
@@ -50,6 +51,16 @@ export default function Home() {
       setError(ERROR_MESSAGES[errorCode] || ERROR_MESSAGES.UNKNOWN_ERROR);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleCopyToClipboard = async (text: string, index: number) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedIndex(index);
+      setTimeout(() => setCopiedIndex(null), 1500);
+    } catch {
+      // silently fail or show toast in real life
     }
   };
 
@@ -124,7 +135,7 @@ export default function Home() {
             {posts.map((post, index) => (
               <div
                 key={index}
-                className="p-4 border rounded-lg hover:shadow-md transition-shadow"
+                className="relative p-4 border rounded-lg hover:shadow-md transition-shadow"
               >
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-2xl">
@@ -140,6 +151,13 @@ export default function Home() {
                 <p className="text-gray-800 whitespace-pre-wrap">
                   {post.content}
                 </p>
+                <button
+                  onClick={() => handleCopyToClipboard(post.content, index)}
+                  className="absolute bottom-3 right-3 text-xs px-2 py-1 rounded-md
+             border bg-white hover:bg-gray-100 text-gray-600 transition"
+                >
+                  {copiedIndex === index ? "Copied! ✅" : "Copy 📋"}
+                </button>
               </div>
             ))}
           </div>
