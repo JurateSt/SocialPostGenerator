@@ -3,6 +3,10 @@
 import { useState } from "react";
 import { generatePosts } from "../api";
 import { ERROR_MESSAGES } from "@/messages/errors";
+import { FormInput } from "@/components/FormInput";
+import { FormTextArea } from "@/components/FormTextArea";
+import { FormNumber } from "@/components/FormNumber";
+import Loading from "@/components/Loading";
 
 interface Product {
   name: string;
@@ -31,20 +35,38 @@ export default function Home() {
     category: "",
   });
   const [posts, setPosts] = useState<SocialMediaPost[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
   const handleGeneratePosts = async () => {
+    if (isLoading) return;
     setError(null);
+    setIsLoading(true);
+
     try {
       const result = await generatePosts(product);
       setPosts(result.posts);
     } catch (err: any) {
       const errorCode = err?.code || "UNKNOWN_ERROR";
       setError(ERROR_MESSAGES[errorCode] || ERROR_MESSAGES.UNKNOWN_ERROR);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCopyToClipboard = async (text: string, index: number) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedIndex(index);
+      setTimeout(() => setCopiedIndex(null), 1500);
+    } catch {
+      // silently fail or show toast in real life
     }
   };
 
   return (
     <main className="min-h-screen p-8 max-w-4xl mx-auto">
+      {isLoading && <Loading />}
       <h1 className="text-3xl font-bold mb-8">Social Media Post Generator</h1>
 
       {/* TODO: in real life would use toast library, tried not overengineering this */}
@@ -56,39 +78,29 @@ export default function Home() {
 
       <div className="space-y-4 mb-8">
         <div>
-          <label className="block text-sm font-medium mb-2">Product Name</label>
-          <input
-            type="text"
-            className="w-full px-3 py-2 border rounded-md"
+          <FormInput
+            label="Name"
             value={product.name}
-            onChange={(e) => setProduct({ ...product, name: e.target.value })}
-            placeholder="EcoBottle Pro"
+            required
+            onChange={(value) => setProduct({ ...product, name: value })}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2">Description</label>
-          <textarea
-            className="w-full px-3 py-2 border rounded-md"
-            rows={4}
+          <FormTextArea
+            label="Description"
             value={product.description}
-            onChange={(e) =>
-              setProduct({ ...product, description: e.target.value })
-            }
-            placeholder="Revolutionary reusable water bottle with built-in UV purification..."
+            required
+            onChange={(value) => setProduct({ ...product, description: value })}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2">Price</label>
-          <input
-            type="number"
-            className="w-full px-3 py-2 border rounded-md"
+          <FormNumber
+            label="Price (€)"
             value={product.price}
-            onChange={(e) =>
-              setProduct({ ...product, price: parseFloat(e.target.value) || 0 })
-            }
-            placeholder="49.99"
+            required
+            onChange={(value) => setProduct({ ...product, price: value })}
           />
         </div>
 
@@ -111,8 +123,9 @@ export default function Home() {
       <button
         onClick={handleGeneratePosts}
         className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+        disabled={isLoading}
       >
-        Generate Posts
+        {isLoading ? "Generating..." : "Generate Posts"}
       </button>
 
       {posts.length > 0 && (
@@ -122,7 +135,7 @@ export default function Home() {
             {posts.map((post, index) => (
               <div
                 key={index}
-                className="p-4 border rounded-lg hover:shadow-md transition-shadow"
+                className="relative p-4 border rounded-lg hover:shadow-md transition-shadow"
               >
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-2xl">
@@ -138,6 +151,13 @@ export default function Home() {
                 <p className="text-gray-800 whitespace-pre-wrap">
                   {post.content}
                 </p>
+                <button
+                  onClick={() => handleCopyToClipboard(post.content, index)}
+                  className="absolute bottom-3 right-3 text-xs px-2 py-1 rounded-md
+             border bg-white hover:bg-gray-100 text-gray-600 transition"
+                >
+                  {copiedIndex === index ? "Copied! ✅" : "Copy 📋"}
+                </button>
               </div>
             ))}
           </div>
