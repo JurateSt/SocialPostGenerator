@@ -3,6 +3,10 @@
 import { useState } from "react";
 import { generatePosts } from "../api";
 import { ERROR_MESSAGES } from "@/messages/errors";
+import { FormInput } from "@/components/FormInput";
+import { FormTextArea } from "@/components/FormTextArea";
+import { FormNumber } from "@/components/FormNumber";
+import Loading from "@/components/Loading";
 
 interface Product {
   name: string;
@@ -31,20 +35,27 @@ export default function Home() {
     category: "",
   });
   const [posts, setPosts] = useState<SocialMediaPost[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleGeneratePosts = async () => {
+    if (isLoading) return;
     setError(null);
+    setIsLoading(true);
+
     try {
       const result = await generatePosts(product);
       setPosts(result.posts);
     } catch (err: any) {
       const errorCode = err?.code || "UNKNOWN_ERROR";
       setError(ERROR_MESSAGES[errorCode] || ERROR_MESSAGES.UNKNOWN_ERROR);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <main className="min-h-screen p-8 max-w-4xl mx-auto">
+      {isLoading && <Loading />}
       <h1 className="text-3xl font-bold mb-8">Social Media Post Generator</h1>
 
       {/* TODO: in real life would use toast library, tried not overengineering this */}
@@ -56,39 +67,29 @@ export default function Home() {
 
       <div className="space-y-4 mb-8">
         <div>
-          <label className="block text-sm font-medium mb-2">Product Name</label>
-          <input
-            type="text"
-            className="w-full px-3 py-2 border rounded-md"
+          <FormInput
+            label="Name"
             value={product.name}
-            onChange={(e) => setProduct({ ...product, name: e.target.value })}
-            placeholder="EcoBottle Pro"
+            required
+            onChange={(value) => setProduct({ ...product, name: value })}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2">Description</label>
-          <textarea
-            className="w-full px-3 py-2 border rounded-md"
-            rows={4}
+          <FormTextArea
+            label="Description"
             value={product.description}
-            onChange={(e) =>
-              setProduct({ ...product, description: e.target.value })
-            }
-            placeholder="Revolutionary reusable water bottle with built-in UV purification..."
+            required
+            onChange={(value) => setProduct({ ...product, description: value })}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2">Price</label>
-          <input
-            type="number"
-            className="w-full px-3 py-2 border rounded-md"
+          <FormNumber
+            label="Price (€)"
             value={product.price}
-            onChange={(e) =>
-              setProduct({ ...product, price: parseFloat(e.target.value) || 0 })
-            }
-            placeholder="49.99"
+            required
+            onChange={(value) => setProduct({ ...product, price: value })}
           />
         </div>
 
@@ -111,8 +112,9 @@ export default function Home() {
       <button
         onClick={handleGeneratePosts}
         className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+        disabled={isLoading}
       >
-        Generate Posts
+        {isLoading ? "Generating..." : "Generate Posts"}
       </button>
 
       {posts.length > 0 && (
