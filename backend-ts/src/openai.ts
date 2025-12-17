@@ -27,6 +27,22 @@ export async function callOpenAI(prompt: string): Promise<SocialMediaPost[]> {
       model: "gpt-4o",
       messages: [
         {
+          role: "system",
+          content: `
+        You are a professional social media copywriter.
+        
+        Your task is to generate engaging, platform-appropriate social media posts
+        to promote a product.
+        
+        Rules:
+        - Always return valid JSON only.
+        - Follow platform best practices.
+        - Be concise, clear, and persuasive.
+        - Use emojis sparingly and appropriately.
+        - Do not invent facts not provided in the input.
+        `,
+        },
+        {
           role: "user",
           content: prompt,
         },
