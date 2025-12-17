@@ -7,6 +7,7 @@ import { FormInput } from "@/components/FormInput";
 import { FormTextArea } from "@/components/FormTextArea";
 import { FormNumber } from "@/components/FormNumber";
 import Loading from "@/components/Loading";
+import { PostCard } from "@/components/PostCard";
 
 interface Product {
   name: string;
@@ -19,12 +20,6 @@ interface SocialMediaPost {
   platform: "twitter" | "instagram" | "linkedin";
   content: string;
 }
-
-const PLATFORM_ICONS = {
-  twitter: "𝕏",
-  instagram: "📷",
-  linkedin: "💼",
-};
 
 export default function Home() {
   const [error, setError] = useState<string | null>(null);
@@ -47,8 +42,8 @@ export default function Home() {
       const result = await generatePosts(product);
       setPosts(result.posts);
     } catch (err: any) {
-      const errorCode = err?.code || "UNKNOWN_ERROR";
-      setError(ERROR_MESSAGES[errorCode] || ERROR_MESSAGES.UNKNOWN_ERROR);
+      const errorCode = err?.code || "SOMETHING_WENT_WRONG";
+      setError(ERROR_MESSAGES[errorCode]);
     } finally {
       setIsLoading(false);
     }
@@ -59,10 +54,13 @@ export default function Home() {
       await navigator.clipboard.writeText(text);
       setCopiedIndex(index);
       setTimeout(() => setCopiedIndex(null), 1500);
+      setError(null);
     } catch {
-      // silently fail or show toast in real life
+      setError(ERROR_MESSAGES.COPY_FAILED);
     }
   };
+
+  console.log("posts", posts);
 
   return (
     <main className="min-h-screen p-8 max-w-4xl mx-auto">
@@ -133,32 +131,12 @@ export default function Home() {
           <h2 className="text-2xl font-semibold mb-4">Generated Posts</h2>
           <div className="space-y-4">
             {posts.map((post, index) => (
-              <div
+              <PostCard
                 key={index}
-                className="relative p-4 border rounded-lg hover:shadow-md transition-shadow"
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-2xl">
-                    {PLATFORM_ICONS[post.platform]}
-                  </span>
-                  <span className="font-medium text-sm text-gray-600 capitalize">
-                    {post.platform}
-                  </span>
-                  <span className="text-xs text-gray-400">
-                    {post.content.length} chars
-                  </span>
-                </div>
-                <p className="text-gray-800 whitespace-pre-wrap">
-                  {post.content}
-                </p>
-                <button
-                  onClick={() => handleCopyToClipboard(post.content, index)}
-                  className="absolute bottom-3 right-3 text-xs px-2 py-1 rounded-md
-             border bg-white hover:bg-gray-100 text-gray-600 transition"
-                >
-                  {copiedIndex === index ? "Copied! ✅" : "Copy 📋"}
-                </button>
-              </div>
+                post={post}
+                onCopy={() => handleCopyToClipboard(post.content, index)}
+                copied={copiedIndex === index}
+              />
             ))}
           </div>
         </div>

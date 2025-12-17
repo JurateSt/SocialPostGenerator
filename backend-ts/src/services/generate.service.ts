@@ -1,5 +1,6 @@
 import { callOpenAI } from "../openai";
-import { Product, SocialMediaPost } from "../types";
+import { Product } from "../validation/product.schema";
+import { SocialMediaPost } from "../types";
 
 const POST_COUNT = 5;
 
