@@ -5,7 +5,6 @@ export const ERROR_MESSAGES: Record<string, string> = {
   OPENAI_RATE_LIMIT: "Too many requests. Please try again later.",
   OPENAI_TIMEOUT: "The request timed out. Please try again.",
   OPENAI_BAD_RESPONSE: "Failed to generate posts.",
-  GENERATION_FAILED: "Failed to generate posts.",
   SOMETHING_WENT_WRONG: "Something went wrong.",
   VALIDATION_ERROR:
     "Please fill in all fields and ensure the price is a positive number.",
