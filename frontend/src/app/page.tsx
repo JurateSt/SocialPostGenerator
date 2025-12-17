@@ -60,8 +60,6 @@ export default function Home() {
     }
   };
 
-  console.log("posts", posts);
-
   return (
     <main className="min-h-screen p-8 max-w-4xl mx-auto">
       {isLoading && <Loading />}
